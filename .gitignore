@@ -1,0 +1,20 @@
+# Environment / secrets
+.env
+
+# Database & runtime data
+*.db
+*.sqlite3
+logs/
+users_files/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
