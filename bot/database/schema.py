@@ -1,7 +1,6 @@
-"""Database schema and one-off initialization.
-
-Tables are created with ``IF NOT EXISTS`` so calling :func:`init_db` on every
-start-up is safe and idempotent.
+"""
+Describes the database schema: SQL statements to create the `users` and `training_weeks` tables. 
+reates the tables once at startup.
 """
 from __future__ import annotations
 

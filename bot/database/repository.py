@@ -1,8 +1,6 @@
-"""Data-access layer.
-
-Every SQL statement in the project lives here, and every value is passed as a
-bound parameter (``?``) rather than being formatted into the query string —
-that is what keeps the bot safe from SQL injection.
+"""
+All of the project's SQL is here. 
+The rest of the code interacts with the database only through the methods of this class.
 """
 from __future__ import annotations
 

@@ -1,7 +1,6 @@
-"""Application configuration loaded from environment variables.
-
-Nothing secret is hard-coded. Copy ``.env.example`` to ``.env`` and fill in
-your own values; ``load_config`` reads them once at start-up.
+"""
+Loads project settings from the environment file (.env) and returns them as a single object. 
+This is the only place where the token, admins, time zone, and database path are read.
 """
 from __future__ import annotations
 

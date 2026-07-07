@@ -1,17 +1,6 @@
-"""Background reminder scheduler.
-
-Once a minute the loop checks every user's per-day reminder time and sends
-today's workout when it is due. A ``reminder_pending`` flag in the database
-guarantees each user is reminded at most once per day, even though the loop
-ticks several times within the same minute.
-
-Compared with the original implementation this version:
-
-* uses a date-based guard for the midnight reset instead of a local flag that
-  reset on every tick (the old guard never actually worked);
-* fires a reminder at *or after* its scheduled time, so a short outage no
-  longer causes the whole day to be skipped;
-* has no arbitrary "restart every 2 days" wrapper.
+"""
+The largest processor: everything related to the schedule—adding, viewing, editing, and deleting weeks and times. 
+It operates through FSM dialogs and calls the Repository.
 """
 from __future__ import annotations
 

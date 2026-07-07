@@ -30,15 +30,15 @@ router = Router(name="schedule")
 
 # Ordered prompts reused by the day-by-day plan and time collection flows.
 _PLAN_PROMPTS = (
-    "Пришли тренировку на понедельник",
-    "Пришли тренировку на вторник",
-    "Пришли тренировку на среду",
-    "Пришли тренировку на четверг",
-    "Пришли тренировку на пятницу",
-    "Пришли тренировку на субботу",
-    "Пришли тренировку на воскресенье",
+    "Send the workout for Monday",
+    "Send the workout for Tuesday",
+    "Send the workout for Wednesday",
+    "Send the workout for Thursday",
+    "Send the workout for Friday",
+    "Send the workout for Saturday",
+    "Send the workout for Sunday",
 )
-_TIME_PROMPTS = tuple(p.replace("тренировку", "время") for p in _PLAN_PROMPTS)
+_TIME_PROMPTS = tuple(p.replace("workout", "time") for p in _PLAN_PROMPTS)
 
 
 async def _read_plan_from_document(bot: Bot, message: Message) -> str:
@@ -62,7 +62,7 @@ async def add_week_start(
     message: Message, state: FSMContext, repo: Repository, config: Config
 ) -> None:
     if repo.get_weeks_count(message.from_user.id) >= config.max_weeks:
-        await message.answer(f"Достигнут лимит в {config.max_weeks} недель.")
+        await message.answer(f"Limit of {config.max_weeks} weeks reached.")
         return
     await message.answer(_PLAN_PROMPTS[0])
     await state.set_state(AddWeek.monday)
@@ -118,11 +118,11 @@ async def add_week_finish(
     await state.clear()
     if added:
         await message.answer(
-            "Расписание сохранено!", reply_markup=reply.main_menu()
+            "Schedule saved!", reply_markup=reply.main_menu()
         )
     else:
         await message.answer(
-            f"Достигнут лимит в {config.max_weeks} недель.",
+            f"Limit of {config.max_weeks} weeks reached.",
             reply_markup=reply.main_menu(),
         )
 
@@ -135,9 +135,9 @@ async def upload_week_start(
     message: Message, state: FSMContext, repo: Repository, config: Config
 ) -> None:
     if repo.get_weeks_count(message.from_user.id) >= config.max_weeks:
-        await message.answer(f"Достигнут лимит в {config.max_weeks} недель.")
+        await message.answer(f"Limit of {config.max_weeks} weeks reached.")
         return
-    await message.answer("Пришли мне заполненный файл-шаблон.")
+    await message.answer("Send me the completed template file.")
     await state.set_state(UploadPlan.file)
 
 
@@ -150,20 +150,20 @@ async def upload_week_finish(
         plan = await _read_plan_from_document(bot, message)
     except (ValueError, UnicodeDecodeError):
         await message.answer(
-            "Не получилось прочитать файл. Проверь, что это .txt по шаблону.",
+            "Could not read the file. Please check that it is a .txt file matching the template.",
             reply_markup=reply.main_menu(),
         )
         await state.clear()
         return
     added = repo.add_week(message.from_user.id, plan, config.max_weeks)
     await state.clear()
-    text = "Расписание добавлено!" if added else "Достигнут лимит недель."
+    text = "Schedule added!" if added else "Week limit reached."
     await message.answer(text, reply_markup=reply.main_menu())
 
 
 @router.message(UploadPlan.file)
 async def upload_week_not_a_file(message: Message) -> None:
-    await message.answer("Нужен файл-документ. Пришли .txt по шаблону.")
+    await message.answer("A document file is required. Please send a .txt file matching the template.")
 
 
 # --------------------------------------------------------------------------
@@ -174,7 +174,7 @@ async def all_weeks(message: Message, repo: Repository) -> None:
     weeks = repo.get_all_weeks(message.from_user.id)
     if not weeks:
         await message.answer(
-            "Ты ещё не добавил расписание.", reply_markup=reply.main_menu()
+            "You haven't added a schedule yet.", reply_markup=reply.main_menu()
         )
         return
     await message.answer(
@@ -189,11 +189,11 @@ async def view_week_start(
     total = repo.get_weeks_count(message.from_user.id)
     if total == 0:
         await message.answer(
-            "Ты ещё не добавил расписание.", reply_markup=reply.main_menu()
+            "You haven't added a schedule yet.", reply_markup=reply.main_menu()
         )
         return
     await message.answer(
-        f"Пришли номер недели (всего у тебя {total}).",
+        f"Send the week number (you have {total} in total).",
         reply_markup=reply.main_menu(),
     )
     await state.set_state(ViewWeek.number)
@@ -207,15 +207,15 @@ async def view_week_show(
     try:
         number = int(message.text)
     except (ValueError, TypeError):
-        await message.answer("Нужно число. Попробуй ещё раз.")
+        await message.answer("A number is required. Please try again.")
         return
     if not 1 <= number <= total:
-        await message.answer(f"Неверный номер. Всего недель: {total}.")
+        await message.answer(f"Invalid number. Total weeks: {total}.")
         return
     plan = repo.get_week_plan(message.from_user.id, number)
     await state.clear()
     await message.answer(
-        f"Тренировочная неделя №{number}\n\n{format_week(plan)}",
+        f"Training week №{number}\n\n{format_week(plan)}",
         reply_markup=reply.main_menu(),
     )
 
@@ -229,11 +229,11 @@ async def delete_week_start(
 ) -> None:
     if repo.get_weeks_count(message.from_user.id) == 0:
         await message.answer(
-            "Удалять нечего.", reply_markup=reply.main_menu()
+            "Nothing to delete.", reply_markup=reply.main_menu()
         )
         return
     await message.answer(
-        "Удалить последнюю неделю? Напиши «да» или «yes» для подтверждения."
+        "Delete the last week? Type 'да' or 'yes' to confirm."
     )
     await state.set_state(DeleteWeek.confirm)
 
@@ -246,11 +246,11 @@ async def delete_week_confirm(
     if (message.text or "").strip().lower() in {"да", "yes"}:
         repo.delete_last_week(message.from_user.id)
         await message.answer(
-            "Последняя неделя удалена.", reply_markup=reply.main_menu()
+            "The last week has been deleted.", reply_markup=reply.main_menu()
         )
     else:
         await message.answer(
-            "Удаление отменено.", reply_markup=reply.main_menu()
+            "Deletion canceled.", reply_markup=reply.main_menu()
         )
 
 
@@ -259,7 +259,7 @@ async def delete_week_confirm(
 # --------------------------------------------------------------------------
 @router.message(Command("set_times"))
 async def set_times_start(message: Message, state: FSMContext) -> None:
-    await message.answer(_TIME_PROMPTS[0] + " (формат ЧЧ:ММ)")
+    await message.answer(_TIME_PROMPTS[0] + " (HH:MM format)")
     await state.set_state(AddTimes.monday)
 
 
@@ -270,7 +270,7 @@ async def _collect_time_day(
     """Store one day's time. Returns False (and ends the flow) if invalid."""
     if not is_valid_time(message.text or ""):
         await message.answer(
-            "Некорректное время. Начни заново командой /set_times.",
+            "Invalid time. Start over using the /set_times command.",
             reply_markup=reply.main_menu(),
         )
         await state.clear()
@@ -322,7 +322,7 @@ async def set_time_finish(
     repo.set_all_times(message.from_user.id, data)
     await state.clear()
     await message.answer(
-        "Время напоминаний сохранено!", reply_markup=reply.main_menu()
+        "Reminder times saved!", reply_markup=reply.main_menu()
     )
 
 
@@ -335,11 +335,11 @@ async def change_time_start(
 ) -> None:
     if repo.get_weeks_count(message.from_user.id) == 0:
         await message.answer(
-            "Сначала добавь расписание.", reply_markup=reply.main_menu()
+            "Please add a schedule first.", reply_markup=reply.main_menu()
         )
         return
     await message.answer(
-        "Выбери день недели", reply_markup=reply.weekday_picker()
+        "Select a day of the week", reply_markup=reply.weekday_picker()
     )
     await state.set_state(ChangeDayTime.day)
 
@@ -348,12 +348,12 @@ async def change_time_start(
 async def change_time_day(message: Message, state: FSMContext) -> None:
     if not is_valid_weekday(message.text or ""):
         await message.answer(
-            "Это не название дня недели.", reply_markup=reply.main_menu()
+            "This is not a valid day of the week.", reply_markup=reply.main_menu()
         )
         await state.clear()
         return
     await state.update_data(day=message.text)
-    await message.answer("Пришли время для этого дня (ЧЧ:ММ)")
+    await message.answer("Send the time for this day (HH:MM)")
     await state.set_state(ChangeDayTime.time)
 
 
@@ -363,7 +363,7 @@ async def change_time_finish(
 ) -> None:
     if not is_valid_time(message.text or ""):
         await message.answer(
-            "Некорректное время.", reply_markup=reply.main_menu()
+            "Invalid time.", reply_markup=reply.main_menu()
         )
         await state.clear()
         return
@@ -371,7 +371,7 @@ async def change_time_finish(
     repo.set_day_time(message.from_user.id, data["day"], message.text)
     await state.clear()
     await message.answer(
-        "Время обновлено!", reply_markup=reply.main_menu()
+        "Time updated!", reply_markup=reply.main_menu()
     )
 
 
@@ -385,11 +385,11 @@ async def change_week_start(
     total = repo.get_weeks_count(message.from_user.id)
     if total == 0:
         await message.answer(
-            "Сначала добавь расписание.", reply_markup=reply.main_menu()
+            "Please add a schedule first.", reply_markup=reply.main_menu()
         )
         return
     await message.answer(
-        f"Пришли номер недели для замены (всего {total}).",
+        f"Send the week number to replace (total {total}).",
         reply_markup=reply.main_menu(),
     )
     await state.set_state(ChangeWeekPlan.number)
@@ -403,13 +403,13 @@ async def change_week_number(
     try:
         number = int(message.text)
     except (ValueError, TypeError):
-        await message.answer("Нужно число. Попробуй ещё раз.")
+        await message.answer("A number is required. Please try again.")
         return
     if not 1 <= number <= total:
-        await message.answer(f"Неверный номер. Всего недель: {total}.")
+        await message.answer(f"Invalid number. Total weeks: {total}.")
         return
     await state.update_data(number=number)
-    await message.answer("Теперь пришли файл-шаблон с новым планом.")
+    await message.answer("Now send the template file with the new plan.")
     await state.set_state(ChangeWeekPlan.file)
 
 
@@ -422,20 +422,20 @@ async def change_week_finish(
         plan = await _read_plan_from_document(bot, message)
     except (ValueError, UnicodeDecodeError):
         await message.answer(
-            "Файл заполнен неправильно.", reply_markup=reply.main_menu()
+            "The file is filled out incorrectly.", reply_markup=reply.main_menu()
         )
         await state.clear()
         return
     repo.update_week_plan(message.from_user.id, data["number"], plan)
     await state.clear()
     await message.answer(
-        "Неделя обновлена!", reply_markup=reply.main_menu()
+        "Week updated!", reply_markup=reply.main_menu()
     )
 
 
 @router.message(ChangeWeekPlan.file)
 async def change_week_not_a_file(message: Message) -> None:
-    await message.answer("Нужен файл-документ. Пришли .txt по шаблону.")
+    await message.answer("A document file is required. Please send a .txt file matching the template.")
 
 
 # --------------------------------------------------------------------------
