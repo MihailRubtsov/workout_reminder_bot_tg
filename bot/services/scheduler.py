@@ -1,6 +1,6 @@
 """
-The largest processor: everything related to the schedule—adding, viewing, editing, and deleting weeks and times. 
-It operates through FSM dialogs and calls the Repository.
+Reminder Scheduler: A background process that checks once a minute to see who is due to receive a workout. 
+It also performs a nightly reset and switches to the new week.
 """
 from __future__ import annotations
 
@@ -35,14 +35,13 @@ class ReminderScheduler:
             except asyncio.CancelledError:
                 logger.info("Scheduler stopped")
                 raise
-            except Exception:  # noqa: BLE001 - log and keep the loop alive
+            except Exception:  
                 logger.exception("Error inside scheduler tick")
             await asyncio.sleep(_TICK_SECONDS)
 
     async def _tick(self) -> None:
         now = datetime.now(self._tz)
 
-        # Midnight housekeeping, guaranteed to run once per calendar day.
         if now.hour == 0 and now.minute == 0:
             await self._daily_reset(now)
             return
@@ -54,7 +53,6 @@ class ReminderScheduler:
             return
         self._last_reset_day = now.date()
 
-        # Monday (weekday() == 0) starts a new training week for everyone.
         if now.weekday() == 0:
             self._repo.advance_all_weeks()
             await self._notify_admins("The Start of a New Week")
@@ -64,7 +62,7 @@ class ReminderScheduler:
         self._repo.reset_all_reminders()
 
     async def _send_due_reminders(self, now: datetime) -> None:
-        day_index = now.weekday()          # 0 = Monday
+        day_index = now.weekday()          
         day_column = f"{DAYS[day_index]}_time"
 
         for user in self._repo.get_all_users():
@@ -83,7 +81,6 @@ class ReminderScheduler:
 
     @staticmethod
     def _is_due(scheduled: str, now: datetime) -> bool:
-        """True if ``now`` is at or after the ``"HH:MM"`` scheduled time."""
         try:
             hour, minute = (int(part) for part in scheduled.split(":"))
         except (ValueError, AttributeError):
@@ -100,7 +97,7 @@ class ReminderScheduler:
         try:
             await self._bot.send_message(user["telegram_id"], text)
             self._repo.mark_reminder_sent(user["telegram_id"])
-        except Exception:  # noqa: BLE001 - one bad chat must not stop the rest
+        except Exception: 
             logger.exception(
                 "Failed to send reminder to %s", user["telegram_id"]
             )
@@ -109,5 +106,5 @@ class ReminderScheduler:
         for admin_id in self._config.admin_ids:
             try:
                 await self._bot.send_message(admin_id, text)
-            except Exception:  # noqa: BLE001
+            except Exception:  
                 logger.exception("Failed to notify admin %s", admin_id)

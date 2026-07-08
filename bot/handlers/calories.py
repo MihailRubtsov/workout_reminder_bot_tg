@@ -1,7 +1,5 @@
-"""Daily calorie calculator (Mifflin-St Jeor formula).
-
-Unlike the original version, numeric input is validated at every step, so a
-non-numeric answer asks the user to retry instead of crashing the handler.
+"""
+command to count calories
 """
 from __future__ import annotations
 

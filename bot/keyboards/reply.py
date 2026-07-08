@@ -1,7 +1,5 @@
-"""Reply keyboards shown to the user.
-
-Every builder returns a fresh :class:`ReplyKeyboardMarkup` so keyboards are
-never accidentally shared or mutated between users.
+"""
+all telegram keyboards
 """
 from __future__ import annotations
 

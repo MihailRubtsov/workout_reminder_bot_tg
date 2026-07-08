@@ -1,4 +1,4 @@
-"""Basic commands: start, help and menu navigation."""
+"""Basic commands"""
 from __future__ import annotations
 
 from aiogram import Router

@@ -1,7 +1,5 @@
-"""Turn stored plans into human-readable messages.
-
-Formatting is kept separate from the database layer so the repository only
-deals with data, never with presentation.
+"""
+converts saved plans back into text
 """
 from __future__ import annotations
 
@@ -16,7 +14,7 @@ _DAY_LABELS = (
 
 
 def format_week(plan: str) -> str:
-    """Render one week's plan as a labelled, day-by-day block."""
+    """Render one week's plan"""
     days = plan.split(PLAN_SEPARATOR)
     lines = [f"{label}: {days[i] if i < len(days) else ''}"
              for i, label in enumerate(_DAY_LABELS)]

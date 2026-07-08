@@ -13,7 +13,9 @@ from aiogram.types import Message
 
 from bot.config import Config
 from bot.database.repository import Repository
-
+"""
+file with admins commands
+"""
 router = Router(name="admin")
 
 

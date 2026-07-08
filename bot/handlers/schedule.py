@@ -28,7 +28,7 @@ from bot.states import (
 logger = logging.getLogger(__name__)
 router = Router(name="schedule")
 
-# Ordered prompts reused by the day-by-day plan and time collection flows.
+
 _PLAN_PROMPTS = (
     "Send the workout for Monday",
     "Send the workout for Tuesday",
@@ -42,9 +42,8 @@ _TIME_PROMPTS = tuple(p.replace("workout", "time") for p in _PLAN_PROMPTS)
 
 
 async def _read_plan_from_document(bot: Bot, message: Message) -> str:
-    """Download an uploaded .txt template and return the parsed plan string.
-
-    Raises :class:`ValueError` if there is no document or it is malformed.
+    """
+    plan in txt from file
     """
     if message.document is None:
         raise ValueError("No document attached")
@@ -54,9 +53,9 @@ async def _read_plan_from_document(bot: Bot, message: Message) -> str:
     return parse_template(text)
 
 
-# --------------------------------------------------------------------------
-# Add a week, one day at a time
-# --------------------------------------------------------------------------
+"""
+add all week with state
+"""
 @router.message(Command("add_week"))
 async def add_week_start(
     message: Message, state: FSMContext, repo: Repository, config: Config
@@ -127,9 +126,7 @@ async def add_week_finish(
         )
 
 
-# --------------------------------------------------------------------------
-# Upload a week from a template file
-# --------------------------------------------------------------------------
+"""add week with a file"""
 @router.message(Command("upload_week"))
 async def upload_week_start(
     message: Message, state: FSMContext, repo: Repository, config: Config
@@ -166,9 +163,7 @@ async def upload_week_not_a_file(message: Message) -> None:
     await message.answer("A document file is required. Please send a .txt file matching the template.")
 
 
-# --------------------------------------------------------------------------
-# View schedule
-# --------------------------------------------------------------------------
+"""commands to view schedule"""
 @router.message(Command("all_weeks"))
 async def all_weeks(message: Message, repo: Repository) -> None:
     weeks = repo.get_all_weeks(message.from_user.id)
@@ -220,9 +215,7 @@ async def view_week_show(
     )
 
 
-# --------------------------------------------------------------------------
-# Delete last week
-# --------------------------------------------------------------------------
+
 @router.message(Command("delete_week"))
 async def delete_week_start(
     message: Message, state: FSMContext, repo: Repository
@@ -254,9 +247,6 @@ async def delete_week_confirm(
         )
 
 
-# --------------------------------------------------------------------------
-# Set reminder times for all days
-# --------------------------------------------------------------------------
 @router.message(Command("set_times"))
 async def set_times_start(message: Message, state: FSMContext) -> None:
     await message.answer(_TIME_PROMPTS[0] + " (HH:MM format)")
@@ -326,9 +316,7 @@ async def set_time_finish(
     )
 
 
-# --------------------------------------------------------------------------
-# Change the time for a single day
-# --------------------------------------------------------------------------
+
 @router.message(Command("change_time"))
 async def change_time_start(
     message: Message, state: FSMContext, repo: Repository
@@ -375,9 +363,7 @@ async def change_time_finish(
     )
 
 
-# --------------------------------------------------------------------------
-# Replace an existing week's plan with an uploaded file
-# --------------------------------------------------------------------------
+
 @router.message(Command("change_week"))
 async def change_week_start(
     message: Message, state: FSMContext, repo: Repository
@@ -438,9 +424,7 @@ async def change_week_not_a_file(message: Message) -> None:
     await message.answer("A document file is required. Please send a .txt file matching the template.")
 
 
-# --------------------------------------------------------------------------
-# Template file
-# --------------------------------------------------------------------------
+
 @router.message(Command("template"))
 async def send_template(message: Message, config: Config) -> None:
     await message.answer_document(FSInputFile(config.template_path))

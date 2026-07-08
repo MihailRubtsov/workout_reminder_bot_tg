@@ -1,11 +1,6 @@
-"""Application entry point.
-
-Wiring happens here and only here: load config, open the database, build the
-bot and dispatcher, register routers, start the reminder scheduler, then poll.
-
-``repo`` and ``config`` are handed to the dispatcher as keyword arguments;
-aiogram injects them into any handler (or filter) that declares a matching
-parameter, so no global ``bot`` or database objects are needed.
+"""
+Entry point: brings everything together and launches the bot. 
+This is the only place where the single bot is created and dependencies are resolved.
 """
 from __future__ import annotations
 

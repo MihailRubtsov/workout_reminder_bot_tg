@@ -9,30 +9,24 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator, Optional
 
-# Day columns, in week order. Used both for time updates and to validate the
-# ``day`` argument before it is ever interpolated into a column name.
+
 DAYS: tuple[str, ...] = (
     "monday", "tuesday", "wednesday",
     "thursday", "friday", "saturday", "sunday",
 )
 
-# Separator between the seven daily plans stored inside a single ``plan`` cell.
+# Separator between the seven daily plans stored inside a single plan cell.
 PLAN_SEPARATOR = "@#@"
 
 
 class Repository:
-    """Thin wrapper around the SQLite database."""
+    """all methods to work with DB"""
 
     def __init__(self, db_path: Path) -> None:
         self._db_path = db_path
 
     @contextmanager
     def _connect(self) -> Iterator[sqlite3.Connection]:
-        """Open a connection, commit on success, always close.
-
-        ``row_factory`` lets us read columns by name (``row["weeks_count"]``)
-        instead of by magic index (``row[2]``).
-        """
         con = sqlite3.connect(self._db_path)
         con.row_factory = sqlite3.Row
         try:
@@ -41,7 +35,6 @@ class Repository:
         finally:
             con.close()
 
-    # -- users ----------------------------------------------------------
     def user_exists(self, telegram_id: int) -> bool:
         with self._connect() as con:
             row = con.execute(
@@ -68,12 +61,10 @@ class Repository:
         with self._connect() as con:
             return con.execute("SELECT * FROM users").fetchall()
 
-    # -- reminder times -------------------------------------------------
-    def set_all_times(self, telegram_id: int, times: dict[str, str]) -> None:
-        """Set the send-time for all seven days at once.
 
-        ``times`` maps day name -> ``"HH:MM"``. The column names come from the
-        fixed :data:`DAYS` tuple, never from user input.
+    def set_all_times(self, telegram_id: int, times: dict[str, str]) -> None:
+        """
+        set time to all days in week
         """
         assignments = ", ".join(f"{day}_time = ?" for day in DAYS)
         values = [times[day] for day in DAYS]
@@ -95,9 +86,8 @@ class Repository:
                 (time, telegram_id),
             )
 
-    # -- training weeks -------------------------------------------------
     def add_week(self, telegram_id: int, plan: str, max_weeks: int) -> bool:
-        """Append a new training week. Returns ``False`` if the limit is hit."""
+        """Append a new training week. Returns False if the limit is hit."""
         current = self.get_weeks_count(telegram_id)
         if current >= max_weeks:
             return False
@@ -160,7 +150,7 @@ class Repository:
     def get_day_plan(
         self, telegram_id: int, week_number: int, day_index: int
     ) -> Optional[str]:
-        """Return a single day's plan (0 = Monday ... 6 = Sunday)."""
+        """Return a single day's plan """
         plan = self.get_week_plan(telegram_id, week_number)
         if plan is None:
             return None
@@ -169,7 +159,7 @@ class Repository:
             return parts[day_index]
         return None
 
-    # -- scheduler bookkeeping ------------------------------------------
+
     def advance_all_weeks(self) -> None:
         """Move every user to their next week, wrapping back to week 1."""
         with self._connect() as con:

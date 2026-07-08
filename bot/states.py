@@ -1,12 +1,10 @@
-"""Finite-state-machine states, grouped by the flow they belong to."""
+"""all states"""
 from __future__ import annotations
 
 from aiogram.fsm.state import State, StatesGroup
 
 
 class AddWeek(StatesGroup):
-    """Collecting a training plan day by day."""
-
     monday = State()
     tuesday = State()
     wednesday = State()
@@ -17,8 +15,6 @@ class AddWeek(StatesGroup):
 
 
 class AddTimes(StatesGroup):
-    """Collecting reminder times day by day."""
-
     monday = State()
     tuesday = State()
     wednesday = State()

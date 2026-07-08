@@ -7,8 +7,7 @@ WEEKDAY_NAMES = (
 )
 
 
-def is_valid_time(value: str) -> bool:
-    """Validate an ``"HH:MM"`` string (00:00 .. 23:59)."""
+def is_valid_time(value: str) -> bool:  #checks the time format 
     parts = value.split(":")
     if len(parts) != 2:
         return False
@@ -20,5 +19,5 @@ def is_valid_time(value: str) -> bool:
     return 0 <= hours <= 23 and 0 <= minutes <= 59
 
 
-def is_valid_weekday(value: str) -> bool:
+def is_valid_weekday(value: str) -> bool: #  checks whether the string is the current name of the day of the week
     return value in WEEKDAY_NAMES
